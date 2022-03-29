@@ -1,2 +1,2 @@
 # great-tit-methylation-genes-environment
-This is the full workflow for Sepers et al. (in prep) Genetic vs. environmental effects on DNA methylation in partially cross-fostered great tit nestlings (Parus major ) 
+This is the full workflow for Sepers et al. (in prep) Variation in DNA methylation in the great tit (_Parus major_) is largely determined by genetic effects
