@@ -7,7 +7,10 @@ library(tibble); library(dplyr)
 #### Load in dataframes #####
 
 ## Set working directory ##
-setwd("/home/nioo/rebeccash/2018_BS_manipulation/R_Scripts/complete_MS_pt1") #set this to the cloned github dir
+setwd("/home/nioo/rebeccash/2018_BS_manipulation/R_Scripts/complete_MS_pt1/great-tit-methylation-genes-environment/") #set this to the cloned github dir
+
+#All sites for background list
+base::load("data/ModelOutput.RData") #complete model output
 
 #Significant for geneticNK
 base::load("data/SigCpGGenetic.RData") #sites.sig.geneticnk.M1.select.adjchr
@@ -18,7 +21,7 @@ base::load("data/SigCpGFoster.RData") #sites.sig.fosternk.M1.select.adjchr
 #see script 2.Modelling how to get SigCpGFoster.RData
 
 #chrnames
-base::load(file = "data/reference_genome/GCF_001522545.3_Parus_major1.1_assembly_report_chr_names.RData")
+base::load(file = "~/2018_BS_manipulation/reference_genome/GCF_001522545.3_Parus_major1.1_assembly_report_chr_names.RData")
 #ref genome parus major v1.1 can be downloaded from https://www.ncbi.nlm.nih.gov/assembly/GCF_001522545.3
 
 ## Annotation data ##
@@ -45,6 +48,67 @@ fiveUTR=unique(fiveUTR)
 
 #gff3 files can be downloaded at XXXXX
 # From Laine et al. 2016
+
+#### All sites for background list GOrilla ####
+sites.all <- data_lmm_out[,c(3,4)] #select chr, start 
+
+nrow(sites.all) #117515
+sites.all$pvalue <- NA #to format for GRanges
+sites.all$end <- sites.all$start
+sites.all$strand <- "+"
+sites.all.GR <- as(sites.all, "GRanges")
+
+#Promoters
+annotated_all.promo <- subsetByOverlaps(promoter, sites.all.GR)
+annotated_all.promo <- as.data.frame(annotated_all.promo)
+annotated_all.promo.GO <- annotated_all.promo[,"gene_id"] #for GOrilla
+
+#Genes
+annotated_all.genes <- subsetByOverlaps(genes, sites.all.GR)
+annotated_all.genes <- as.data.frame(annotated_all.genes)
+annotated_all.genes.GO <- annotated_all.genes[,"gene_id"]
+
+#TSS
+annotated_all.TSS <- subsetByOverlaps(TSS, sites.all.GR)
+annotated_all.TSS <- as.data.frame(annotated_all.TSS)
+annotated_all.TSS.GO <- annotated_all.TSS[,"gene_id"]
+
+#exon gene
+annotated_all.exon.gene <- subsetByOverlaps(exons_gene, sites.all.GR)
+annotated_all.exon.gene <- as.data.frame(annotated_all.exon.gene)
+annotated_all.exon.gene.GO <- annotated_all.exon.gene [,"ID"]
+
+#exon transcript
+annotated_all.exon.trans <- subsetByOverlaps(exons_transcript, sites.all.GR)
+annotated_all.exon.trans <- as.data.frame(annotated_all.exon.trans)
+annotated_all.exon.trans.GO <- annotated_all.exon.trans[,"ID"]
+
+#intron
+annotated_all.intron <- subsetByOverlaps(introns, sites.all.GR)
+annotated_all.intron <- as.data.frame(annotated_all.intron)
+annotated_all.intron.GO <- annotated_all.intron[,"ID"]
+
+#upstream
+annotated_all.upstream <- subsetByOverlaps(upstream, sites.all.GR)
+annotated_all.upstream <- as.data.frame(annotated_all.upstream)
+annotated_all.upstream.GO <- annotated_all.upstream[,"gene_id"]
+
+#downstream
+annotated_all.downstream <- subsetByOverlaps(downstream, sites.all.GR)
+annotated_all.downstream <- as.data.frame(annotated_all.downstream)
+annotated_all.downstream.GO <- annotated_all.downstream[,"gene_id"]
+
+# Add together for GOrilla
+genes.for.GOrilla.all<-c(annotated_all.promo.GO, annotated_all.genes.GO,
+                             annotated_all.TSS.GO, annotated_all.exon.gene.GO,
+                             annotated_all.exon.trans.GO, annotated_all.intron.GO,
+                             annotated_all.upstream.GO, annotated_all.downstream.GO)
+
+genes.for.GOrilla.all <- unique(genes.for.GOrilla.all)
+write.table(genes.for.GOrilla.all, row.names = FALSE, col.names=FALSE,
+            quote = FALSE, "data/all.genes.for.GOrilla.txt")
+
+
 
 #### Genetic NK LMER ####
 nrow(sites.sig.geneticnk.M1.select) #8315

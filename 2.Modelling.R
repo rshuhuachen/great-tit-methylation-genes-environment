@@ -140,9 +140,18 @@ data_glmm_out_sign_genetic <- subset(data_lmm_out.adjchr, GeneticNK.qval<0.05 & 
 data_glmm_out_sign_foster <- subset(data_lmm_out.adjchr, FosterNK.qval<0.05 & ICC_FosterNK > 0.15)
 data_glmm_out_sign_overlap <- subset(data_lmm_out.adjchr, GeneticNK.qval<0.05 & ICC_GeneticNK > 0.15 & FosterNK.qval<0.05 & ICC_FosterNK > 0.15)
 
+
+sites.sig.geneticnk.M1.select.adjchr <- data_glmm_out_sign_genetic[,c(3,4,33)] #select chr, start and q-value of factor
+sites.sig.geneticnk.M1.select.adjchr$test <- "M1.sig.GeneticNK.variation"
+
+sites.sig.fosternk.M1.select.adjchr <- data_glmm_out_sign_foster[,c(3,4,33)] #select chr, start and q-value of factor
+sites.sig.fosternk.M1.select.adjchr$test <- "M1.sig.FosterNK.variation"
+
+
 save(data_lmm_out, "/data/ModelOutput.RData") #this file can be found in github directory
-save(data_lmm_out, "/data/SigCpGGenetic.RData")
-save(data_lmm_out, "/data/SigCpGFoster.RData")
+save(sites.sig.geneticnk.M1.select.adjchr, "/data/SigCpGGenetic.RData")
+save(data_glmm_out_sign_foster, "/data/SigCpGFoster.RData")
+
 ## check out relationship q-value and ICC, as this should be negatively correlated (higher ICC, lower q-value)
 
 plot(data_lmm_out$Var.Perc.Gen, -log(data_lmm_out$GeneticNK.qval))
