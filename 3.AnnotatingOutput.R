@@ -7,7 +7,7 @@ library(tibble); library(dplyr)
 #### Load in dataframes #####
 
 ## Set working directory ##
-setwd("/home/nioo/rebeccash/2018_BS_manipulation/R_Scripts/complete_MS_pt1/great-tit-methylation-genes-environment/") #set this to the cloned github dir
+#setwd("/home/nioo/rebeccash/2018_BS_manipulation/R_Scripts/complete_MS_pt1/great-tit-methylation-genes-environment/") #set this to the cloned github dir
 
 #All sites for background list
 base::load("data/ModelOutput.RData") #complete model output
@@ -21,7 +21,8 @@ base::load("data/SigCpGFoster.RData") #sites.sig.fosternk.M1.select.adjchr
 #see script 2.Modelling how to get SigCpGFoster.RData
 
 #chrnames
-base::load(file = "~/2018_BS_manipulation/reference_genome/GCF_001522545.3_Parus_major1.1_assembly_report_chr_names.RData")
+base::load("~/2018_BS_manipulation/reference_genome/GCF_001522545.3_Parus_major1.1_assembly_report_chr_names.RData")
+base::load(file = "/home/nioo/rebeccash/2018_BS_manipulation/R_Scripts/R_raw_files/GCF_001522545.3_Parus_major1.1_assembly_report_chr_names.RData")
 #ref genome parus major v1.1 can be downloaded from https://www.ncbi.nlm.nih.gov/assembly/GCF_001522545.3
 
 ## Annotation data ##
@@ -108,7 +109,78 @@ genes.for.GOrilla.all <- unique(genes.for.GOrilla.all)
 write.table(genes.for.GOrilla.all, row.names = FALSE, col.names=FALSE,
             quote = FALSE, "data/all.genes.for.GOrilla.txt")
 
+# make df one row per cpg site, then add a col to indicate promoter etc.
+annotated_all.promo.CG <- as.data.frame(subsetByOverlaps(sites.all.GR, promoter))
+annotated_all.promo.CG <- add_column(annotated_all.promo.CG, "CHR_POS" = paste(annotated_all.promo.CG$seqnames, annotated_all.promo.CG$start, sep = "_"))
 
+annotated_all.genes.CG <- as.data.frame(subsetByOverlaps(sites.all.GR, genes))
+annotated_all.genes.CG <- add_column(annotated_all.genes.CG, "CHR_POS" = paste(annotated_all.genes.CG$seqnames, annotated_all.genes.CG$start, sep = "_"))
+
+annotated_all.TSS.CG <- as.data.frame(subsetByOverlaps(sites.all.GR, TSS))
+annotated_all.TSS.CG <- add_column(annotated_all.TSS.CG, "CHR_POS" = paste(annotated_all.TSS.CG$seqnames, annotated_all.TSS.CG$start, sep = "_"))
+
+annotated_all.exons_gene.CG <- as.data.frame(subsetByOverlaps(sites.all.GR, exons_gene))
+annotated_all.exons_gene.CG <- add_column(annotated_all.exons_gene.CG, "CHR_POS" = paste(annotated_all.exons_gene.CG$seqnames, annotated_all.exons_gene.CG$start, sep = "_"))
+
+annotated_all.introns.CG <- as.data.frame(subsetByOverlaps(sites.all.GR, introns))
+annotated_all.introns.CG <- add_column(annotated_all.introns.CG, "CHR_POS" = paste(annotated_all.introns.CG$seqnames, annotated_all.introns.CG$start, sep = "_"))
+
+annotated_all.upstream.CG <- as.data.frame(subsetByOverlaps(sites.all.GR, upstream))
+annotated_all.upstream.CG <- add_column(annotated_all.upstream.CG, "CHR_POS" = paste(annotated_all.upstream.CG$seqnames, annotated_all.upstream.CG$start, sep = "_"))
+
+annotated_all.downstream.CG <- as.data.frame(subsetByOverlaps(sites.all.GR, downstream))
+annotated_all.downstream.CG <- add_column(annotated_all.downstream.CG, "CHR_POS" = paste(annotated_all.downstream.CG$seqnames, annotated_all.downstream.CG$start, sep = "_"))
+
+annotated_all.threeUTR.CG <- as.data.frame(subsetByOverlaps(sites.all.GR, threeUTR))
+annotated_all.threeUTR.CG <- add_column(annotated_all.threeUTR.CG, "CHR_POS" = paste(annotated_all.threeUTR.CG$seqnames, annotated_all.threeUTR.CG$start, sep = "_"))
+
+annotated_all.fiveUTR.CG <- as.data.frame(subsetByOverlaps(sites.all.GR, fiveUTR))
+annotated_all.fiveUTR.CG <- add_column(annotated_all.fiveUTR.CG, "CHR_POS" = paste(annotated_all.fiveUTR.CG$seqnames, annotated_all.fiveUTR.CG$start, sep = "_"))
+
+
+list.annotated.all <- sites.all[,c(1,2)] 
+list.annotated.all <- add_column(list.annotated.all, "CHR_POS" = paste(list.annotated.all$chr, list.annotated.all$start, sep = "_"))
+
+## add column
+list.annotated.all <- list.annotated.all%>% mutate(
+  region = as.factor(case_when(
+    list.annotated.all$CHR_POS %in% annotated_all.TSS.CG$CHR_POS ~ "TSS",
+    list.annotated.all$CHR_POS %in% annotated_all.promo.CG$CHR_POS  ~ "Promoter",
+    list.annotated.all$CHR_POS %in% annotated_all.genes.CG$CHR_POS  ~ "Gene body",
+    list.annotated.all$CHR_POS %in% annotated_all.exons_gene.CG$CHR_POS  ~ "Gene body",
+    list.annotated.all$CHR_POS %in% annotated_all.introns.CG$CHR_POS  ~ "Gene body",
+    list.annotated.all$CHR_POS %in% annotated_all.threeUTR.CG$CHR_POS  ~ "Gene body",
+    list.annotated.all$CHR_POS %in% annotated_all.fiveUTR.CG$CHR_POS  ~ "Gene body",
+    list.annotated.all$CHR_POS %in% annotated_all.upstream.CG$CHR_POS  ~ "Up- or downstream",
+    list.annotated.all$CHR_POS %in% annotated_all.downstream.CG$CHR_POS  ~ "Up- or downstream",
+    is.na(list.annotated.all$region) ~ "Intergenic"
+  )
+))
+
+summary(as.factor(list.annotated.all$region))
+
+write.csv(list.annotated.all, "/home/nioo/rebeccash/2018_BS_manipulation/R_Scripts/complete_MS_pt1/great-tit-methylation-genes-environment/data/cpglist_all.csv")
+
+# pie chart
+list.annotated.all.ggplot <- as.data.frame(summary(list.annotated.all$region))
+list.annotated.all.ggplot <- rownames_to_column(list.annotated.all.ggplot, "Functional.Region")
+names(list.annotated.all.ggplot)[2] <- "Nr.Sites"
+piepercent <- found(list.annotated.all.ggplot$prop,2)
+list.annotated.all.ggplot <- list.annotated.all.ggplot %>% 
+  mutate(prop = Nr.Sites / sum(list.annotated.all.ggplot$Nr.Sites) *100) %>%
+  mutate(ypos = cumsum(prop)- 0.5*prop )%>% 
+  mutate(csum = rev(cumsum(rev(Nr.Sites))), 
+         pos = Nr.Sites/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), Nr.Sites/2, pos))
+
+#rearrange
+list.annotated.all.ggplot <- list.annotated.all.ggplot[c(4,3,1,5,2),]
+
+png(file = "/home/nioo/rebeccash/2018_BS_manipulation/R_Scripts/plots/piechart_allcpg.png")
+pie(list.annotated.all.ggplot$Nr.Sites, labels = paste0(round(list.annotated.all.ggplot$prop,1),"%"), 
+    col = c('#c7eae5','#80cdc1','#35978f','#01665e','#003c30'),clockwise=T)
+legend(0.8,1.05, c(list.annotated.all.ggplot$Functional.Region), cex = 0.8, fill = c('#c7eae5','#80cdc1','#35978f','#01665e','#003c30'))
+dev.off()
 
 #### Genetic NK LMER ####
 nrow(sites.sig.geneticnk.M1.select) #8315
@@ -236,28 +308,18 @@ write.table(genes.for.GOrilla.M1.GeneticNK.GO, row.names = FALSE, col.names=FALS
 
 #### Count sites sig for GeneticNK per regulatory region ####
 #should make loop for this
-annotated_M1.GeneticNK.promo.CG <- subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, promoter)
-annotated_M1.GeneticNK.genes.CG <- subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, genes)
-annotated_M1.GeneticNK.TSS.CG <- subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, TSS)
-annotated_M1.GeneticNK.exons_gene.CG <- subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, exons_gene)
-annotated_M1.GeneticNK.introns.CG <- subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, introns)
-annotated_M1.GeneticNK.upstream.CG <- subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, upstream)
-annotated_M1.GeneticNK.downstream.CG <- subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, downstream)
-annotated_M1.GeneticNK.threeUTR.CG <- subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, threeUTR)
-annotated_M1.GeneticNK.fiveUTR.CG <- subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, fiveUTR)
+annotated_M1.GeneticNK.promo.CG <- as.data.frame(subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, promoter))
+annotated_M1.GeneticNK.genes.CG <- as.data.frame(subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, genes))
+annotated_M1.GeneticNK.TSS.CG <- as.data.frame(subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, TSS))
+annotated_M1.GeneticNK.exons_gene.CG <- as.data.frame(subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, exons_gene))
+annotated_M1.GeneticNK.introns.CG <- as.data.frame(subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, introns))
+annotated_M1.GeneticNK.upstream.CG <- as.data.frame(subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, upstream))
+annotated_M1.GeneticNK.downstream.CG <- as.data.frame(subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, downstream))
+annotated_M1.GeneticNK.threeUTR.CG <- as.data.frame(subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, threeUTR))
+annotated_M1.GeneticNK.fiveUTR.CG <- as.data.frame(subsetByOverlaps(sites.sig.geneticnk.M1.select.GR, fiveUTR))
 
-annotated_M1.GeneticNK.unplaced <- sites.sig.geneticnk.M1.select
-annotated_M1.GeneticNK.unplaced <- add_column(annotated_M1.GeneticNK.unplaced, "CHR_POS" = paste(annotated_M1.GeneticNK.unplaced$chr, annotated_M1.GeneticNK.unplaced$start, sep = "_"))
-
-annotated_M1.GeneticNK.promo.CG <- as.data.frame(annotated_M1.GeneticNK.promo.CG)
-annotated_M1.GeneticNK.genes.CG <- as.data.frame(annotated_M1.GeneticNK.genes.CG)
-annotated_M1.GeneticNK.TSS.CG <- as.data.frame(annotated_M1.GeneticNK.TSS.CG)
-annotated_M1.GeneticNK.exons_gene.CG <- as.data.frame(annotated_M1.GeneticNK.exons_gene.CG)
-annotated_M1.GeneticNK.introns.CG <- as.data.frame(annotated_M1.GeneticNK.introns.CG)
-annotated_M1.GeneticNK.upstream.CG <- as.data.frame(annotated_M1.GeneticNK.upstream.CG)
-annotated_M1.GeneticNK.downstream.CG <- as.data.frame(annotated_M1.GeneticNK.downstream.CG)
-annotated_M1.GeneticNK.threeUTR.CG <- as.data.frame(annotated_M1.GeneticNK.threeUTR.CG)
-annotated_M1.GeneticNK.fiveUTR.CG <- as.data.frame(annotated_M1.GeneticNK.fiveUTR.CG)
+#annotated_M1.GeneticNK.unplaced <- sites.sig.geneticnk.M1.select
+#annotated_M1.GeneticNK.unplaced <- add_column(annotated_M1.GeneticNK.unplaced, "CHR_POS" = paste(annotated_M1.GeneticNK.unplaced$chr, annotated_M1.GeneticNK.unplaced$start, sep = "_"))
 
 annotated_M1.GeneticNK.promo.CG <- add_column(annotated_M1.GeneticNK.promo.CG, "CHR_POS" = paste(annotated_M1.GeneticNK.promo.CG$seqnames, annotated_M1.GeneticNK.promo.CG$start, sep = "_"))
 annotated_M1.GeneticNK.genes.CG <- add_column(annotated_M1.GeneticNK.genes.CG, "CHR_POS" = paste(annotated_M1.GeneticNK.genes.CG$seqnames, annotated_M1.GeneticNK.genes.CG$start, sep = "_"))
@@ -269,58 +331,50 @@ annotated_M1.GeneticNK.downstream.CG <- add_column(annotated_M1.GeneticNK.downst
 annotated_M1.GeneticNK.threeUTR.CG <- add_column(annotated_M1.GeneticNK.threeUTR.CG, "CHR_POS" = paste(annotated_M1.GeneticNK.threeUTR.CG$seqnames, annotated_M1.GeneticNK.threeUTR.CG$start, sep = "_"))
 annotated_M1.GeneticNK.fiveUTR.CG <- add_column(annotated_M1.GeneticNK.fiveUTR.CG, "CHR_POS" = paste(annotated_M1.GeneticNK.fiveUTR.CG$seqnames, annotated_M1.GeneticNK.fiveUTR.CG$start, sep = "_"))
 
-annotated_M1.GeneticNK.unplaced <- subset(annotated_M1.GeneticNK.unplaced, !CHR_POS %in% annotated_M1.GeneticNK.promo.CG$CHR_POS)
-annotated_M1.GeneticNK.unplaced <- subset(annotated_M1.GeneticNK.unplaced, !CHR_POS %in% annotated_M1.GeneticNK.genes.CG$CHR_POS)
-annotated_M1.GeneticNK.unplaced <- subset(annotated_M1.GeneticNK.unplaced, !CHR_POS %in% annotated_M1.GeneticNK.TSS.CG$CHR_POS)
-annotated_M1.GeneticNK.unplaced <- subset(annotated_M1.GeneticNK.unplaced, !CHR_POS %in% annotated_M1.GeneticNK.exons_gene.CG$CHR_POS)
-annotated_M1.GeneticNK.unplaced <- subset(annotated_M1.GeneticNK.unplaced, !CHR_POS %in% annotated_M1.GeneticNK.introns.CG$CHR_POS)
-annotated_M1.GeneticNK.unplaced <- subset(annotated_M1.GeneticNK.unplaced, !CHR_POS %in% annotated_M1.GeneticNK.upstream.CG$CHR_POS)
-annotated_M1.GeneticNK.unplaced <- subset(annotated_M1.GeneticNK.unplaced, !CHR_POS %in% annotated_M1.GeneticNK.downstream.CG$CHR_POS)
-annotated_M1.GeneticNK.unplaced <- subset(annotated_M1.GeneticNK.unplaced, !CHR_POS %in% annotated_M1.GeneticNK.threeUTR.CG$CHR_POS)
-annotated_M1.GeneticNK.unplaced <- subset(annotated_M1.GeneticNK.unplaced, !CHR_POS %in% annotated_M1.GeneticNK.fiveUTR.CG$CHR_POS)
+#make a list and add extra col
 
-distribution.M1.geneticNK <- data.frame("Functional.Region" = c("Promoter", "Genes", "TSS", "Exon", 
-                                                                "Introns", "Upstream", "Downstream", 
-                                                                "3-UTR", "5-UTR", "Unplaced", "All"), 
-                                        "Nr.Sites" = c(nrow(annotated_M1.GeneticNK.promo.CG),
-                                                       nrow(annotated_M1.GeneticNK.genes.CG),
-                                                       nrow(annotated_M1.GeneticNK.TSS.CG),
-                                                       nrow(annotated_M1.GeneticNK.exons_gene.CG),
-                                                       nrow(annotated_M1.GeneticNK.introns.CG),
-                                                       nrow(annotated_M1.GeneticNK.upstream.CG),
-                                                       nrow(annotated_M1.GeneticNK.downstream.CG),
-                                                       nrow(annotated_M1.GeneticNK.threeUTR.CG),
-                                                       nrow(annotated_M1.GeneticNK.fiveUTR.CG),
-                                                       length(unique(annotated_M1.GeneticNK.unplaced$CHR_POS)), 
-                                                       nrow(sites.sig.geneticnk.M1.select)))
+list.annotated.genetic <- sites.sig.geneticnk.M1.select[,c(1,2)] 
+list.annotated.genetic <- add_column(list.annotated.genetic, "CHR_POS" = paste(list.annotated.genetic$chr, list.annotated.genetic$start, sep = "_"))
 
-# make pie chart
-distribution.M1Genetic.ggplot <- distribution.M1.geneticNK[-11,]
-str(distribution.M1Genetic.ggplot)
-distribution.M1Genetic.ggplot$Nr.Sites <- as.numeric(distribution.M1Genetic.ggplot$Nr.Sites)
-distribution.M1Genetic.ggplot <- distribution.M1Genetic.ggplot %>% 
-  arrange(Nr.Sites) %>%
-  mutate(prop = Nr.Sites / sum(distribution.M1Genetic.ggplot$Nr.Sites) *100) %>%
+## add column
+list.annotated.genetic <- list.annotated.genetic%>% mutate(
+  region = as.factor(case_when(
+    list.annotated.genetic$CHR_POS %in% annotated_M1.GeneticNK.TSS.CG$CHR_POS ~ "TSS",
+    list.annotated.genetic$CHR_POS %in% annotated_M1.GeneticNK.promo.CG$CHR_POS  ~ "Promoter",
+    list.annotated.genetic$CHR_POS %in% annotated_M1.GeneticNK.genes.CG$CHR_POS  ~ "Gene body",
+    list.annotated.genetic$CHR_POS %in% annotated_M1.GeneticNK.exons_gene.CG$CHR_POS  ~ "Gene body",
+    list.annotated.genetic$CHR_POS %in% annotated_M1.GeneticNK.introns.CG$CHR_POS  ~ "Gene body",
+    list.annotated.genetic$CHR_POS %in% annotated_M1.GeneticNK.threeUTR.CG$CHR_POS  ~ "Gene body",
+    list.annotated.genetic$CHR_POS %in% annotated_M1.GeneticNK.fiveUTR.CG$CHR_POS  ~ "Gene body",
+    list.annotated.genetic$CHR_POS %in% annotated_M1.GeneticNK.upstream.CG$CHR_POS  ~ "Up- or downstream",
+    list.annotated.genetic$CHR_POS %in% annotated_M1.GeneticNK.downstream.CG$CHR_POS  ~ "Up- or downstream",
+    is.na(list.annotated.genetic$region) ~ "Intergenic")
+  ))
+
+list.annotated.genetic$region <- as.factor(list.annotated.genetic$region)
+
+summary(list.annotated.genetic$region)
+write.csv(list.annotated.genetic, "/home/nioo/rebeccash/2018_BS_manipulation/R_Scripts/complete_MS_pt1/great-tit-methylation-genes-environment/data/cpglist_geneticnk.csv")
+
+# pie chart
+list.annotated.genetic.ggplot <- as.data.frame(summary(list.annotated.genetic$region))
+list.annotated.genetic.ggplot <- rownames_to_column(list.annotated.genetic.ggplot, "Functional.Region")
+names(list.annotated.genetic.ggplot)[2] <- "Nr.Sites"
+piepercent <- round(list.annotated.genetic.ggplot$prop,2)
+list.annotated.genetic.ggplot <- list.annotated.genetic.ggplot %>% 
+  mutate(prop = Nr.Sites / sum(list.annotated.genetic.ggplot$Nr.Sites) *100) %>%
   mutate(ypos = cumsum(prop)- 0.5*prop )%>% 
   mutate(csum = rev(cumsum(rev(Nr.Sites))), 
          pos = Nr.Sites/2 + lead(csum, 1),
          pos = if_else(is.na(pos), Nr.Sites/2, pos))
+#rearrange
+list.annotated.genetic.ggplot<- list.annotated.genetic.ggplot[c(4,3,1,5,2),]
 
-library(ggplot2)
-library(ggrepel)
-library(tidyverse)
-
-distribution.M1Genetic.ggplot[10,6] <- 2000
-
-ggplot(distribution.M1Genetic.ggplot, aes(x = "" , y = Nr.Sites, fill = fct_inorder(Functional.Region))) +
-  geom_col(width = 1, color = 1) +
-  coord_polar(theta = "y") +
-  scale_fill_manual(values = c('#543005','#8c510a','#bf812d','#dfc27d','#f6e8c3','#c7eae5','#80cdc1','#35978f','#01665e','#003c30')) +
-  geom_label_repel(data = distribution.M1Genetic.ggplot,
-                   aes(y = pos, label = paste0(Nr.Sites)),
-                   size = 8, nudge_x = 1, show.legend = FALSE, fill = "white", parse = TRUE) +
-  guides(fill = guide_legend(title = "Functional region", reverse = T, label.position = c("left"))) +
-  theme_void()+theme(text = element_text(size = 30))
+png(file = "/home/nioo/rebeccash/2018_BS_manipulation/R_Scripts/plots/piechart_geneticcpg.png")
+pie(list.annotated.genetic.ggplot$Nr.Sites, labels = paste0(round(list.annotated.genetic.ggplot$prop,1),"%"), 
+    col = c('#c7eae5','#80cdc1','#35978f','#01665e','#003c30'),clockwise=T)
+legend(0.8,1.05, c(list.annotated.genetic.ggplot$Functional.Region), cex = 0.8, fill = c('#c7eae5','#80cdc1','#35978f','#01665e','#003c30'))
+dev.off()
 
 #### Foster NK LMER ####
 nrow(sites.sig.fosternk.M1.select) #101
@@ -449,28 +503,18 @@ write.table(genes.for.GOrilla.M1.FosterNK.GO, row.names = FALSE, col.names=FALSE
             quote = FALSE, "data/genes.for.GOrilla.FosterNK.txt")
 
 #### Count sites sig for FosterNK per regulatory region  ####
-annotated_M1.fosternk.promo.CG <- subsetByOverlaps(sites.sig.fosternk.M1.select.GR, promoter)
-annotated_M1.fosternk.genes.CG <- subsetByOverlaps(sites.sig.fosternk.M1.select.GR, genes)
-annotated_M1.fosternk.TSS.CG <- subsetByOverlaps(sites.sig.fosternk.M1.select.GR, TSS)
-annotated_M1.fosternk.exons_gene.CG <- subsetByOverlaps(sites.sig.fosternk.M1.select.GR, exons_gene)
-annotated_M1.fosternk.introns.CG <- subsetByOverlaps(sites.sig.fosternk.M1.select.GR, introns)
-annotated_M1.fosternk.upstream.CG <- subsetByOverlaps(sites.sig.fosternk.M1.select.GR, upstream)
-annotated_M1.fosternk.downstream.CG <- subsetByOverlaps(sites.sig.fosternk.M1.select.GR, downstream)
-annotated_M1.fosternk.threeUTR.CG <- subsetByOverlaps(sites.sig.fosternk.M1.select.GR, threeUTR)
-annotated_M1.fosternk.fiveUTR.CG <- subsetByOverlaps(sites.sig.fosternk.M1.select.GR, fiveUTR)
+annotated_M1.fosternk.promo.CG <- as.data.frame(subsetByOverlaps(sites.sig.fosternk.M1.select.GR, promoter))
+annotated_M1.fosternk.genes.CG <- as.data.frame(subsetByOverlaps(sites.sig.fosternk.M1.select.GR, genes))
+annotated_M1.fosternk.TSS.CG <- as.data.frame(subsetByOverlaps(sites.sig.fosternk.M1.select.GR, TSS))
+annotated_M1.fosternk.exons_gene.CG <- as.data.frame(subsetByOverlaps(sites.sig.fosternk.M1.select.GR, exons_gene))
+annotated_M1.fosternk.introns.CG <- as.data.frame(subsetByOverlaps(sites.sig.fosternk.M1.select.GR, introns))
+annotated_M1.fosternk.upstream.CG <- as.data.frame(subsetByOverlaps(sites.sig.fosternk.M1.select.GR, upstream))
+annotated_M1.fosternk.downstream.CG <- as.data.frame(subsetByOverlaps(sites.sig.fosternk.M1.select.GR, downstream))
+annotated_M1.fosternk.threeUTR.CG <- as.data.frame(subsetByOverlaps(sites.sig.fosternk.M1.select.GR, threeUTR))
+annotated_M1.fosternk.fiveUTR.CG <- as.data.frame(subsetByOverlaps(sites.sig.fosternk.M1.select.GR, fiveUTR))
 
-annotated_M1.fosternk.unplaced <- sites.sig.fosternk.M1.select
-annotated_M1.fosternk.unplaced <- add_column(annotated_M1.fosternk.unplaced, "CHR_POS" = paste(annotated_M1.fosternk.unplaced$chr, annotated_M1.fosternk.unplaced$start, sep = "_"))
-
-annotated_M1.fosternk.promo.CG <- as.data.frame(annotated_M1.fosternk.promo.CG)
-annotated_M1.fosternk.genes.CG <- as.data.frame(annotated_M1.fosternk.genes.CG)
-annotated_M1.fosternk.TSS.CG <- as.data.frame(annotated_M1.fosternk.TSS.CG)
-annotated_M1.fosternk.exons_gene.CG <- as.data.frame(annotated_M1.fosternk.exons_gene.CG)
-annotated_M1.fosternk.introns.CG <- as.data.frame(annotated_M1.fosternk.introns.CG)
-annotated_M1.fosternk.upstream.CG <- as.data.frame(annotated_M1.fosternk.upstream.CG)
-annotated_M1.fosternk.downstream.CG <- as.data.frame(annotated_M1.fosternk.downstream.CG)
-annotated_M1.fosternk.threeUTR.CG <- as.data.frame(annotated_M1.fosternk.threeUTR.CG)
-annotated_M1.fosternk.fiveUTR.CG <- as.data.frame(annotated_M1.fosternk.fiveUTR.CG)
+#annotated_M1.fosternk.unplaced <- sites.sig.fosternk.M1.select
+#annotated_M1.fosternk.unplaced <- add_column(annotated_M1.fosternk.unplaced, "CHR_POS" = paste(annotated_M1.fosternk.unplaced$chr, annotated_M1.fosternk.unplaced$start, sep = "_"))
 
 annotated_M1.fosternk.promo.CG <- add_column(annotated_M1.fosternk.promo.CG, "CHR_POS" = paste(annotated_M1.fosternk.promo.CG$seqnames, annotated_M1.fosternk.promo.CG$start, sep = "_"))
 annotated_M1.fosternk.genes.CG <- add_column(annotated_M1.fosternk.genes.CG, "CHR_POS" = paste(annotated_M1.fosternk.genes.CG$seqnames, annotated_M1.fosternk.genes.CG$start, sep = "_"))
@@ -482,54 +526,78 @@ annotated_M1.fosternk.downstream.CG <- add_column(annotated_M1.fosternk.downstre
 annotated_M1.fosternk.threeUTR.CG <- add_column(annotated_M1.fosternk.threeUTR.CG, "CHR_POS" = paste(annotated_M1.fosternk.threeUTR.CG$seqnames, annotated_M1.fosternk.threeUTR.CG$start, sep = "_"))
 annotated_M1.fosternk.fiveUTR.CG <- add_column(annotated_M1.fosternk.fiveUTR.CG, "CHR_POS" = paste(annotated_M1.fosternk.fiveUTR.CG$seqnames, annotated_M1.fosternk.fiveUTR.CG$start, sep = "_"))
 
-annotated_M1.fosternk.unplaced <- subset(annotated_M1.fosternk.unplaced, !CHR_POS %in% annotated_M1.fosternk.promo.CG$CHR_POS)
-annotated_M1.fosternk.unplaced <- subset(annotated_M1.fosternk.unplaced, !CHR_POS %in% annotated_M1.fosternk.genes.CG$CHR_POS)
-annotated_M1.fosternk.unplaced <- subset(annotated_M1.fosternk.unplaced, !CHR_POS %in% annotated_M1.fosternk.TSS.CG$CHR_POS)
-annotated_M1.fosternk.unplaced <- subset(annotated_M1.fosternk.unplaced, !CHR_POS %in% annotated_M1.fosternk.exons_gene.CG$CHR_POS)
-annotated_M1.fosternk.unplaced <- subset(annotated_M1.fosternk.unplaced, !CHR_POS %in% annotated_M1.fosternk.introns.CG$CHR_POS)
-annotated_M1.fosternk.unplaced <- subset(annotated_M1.fosternk.unplaced, !CHR_POS %in% annotated_M1.fosternk.upstream.CG$CHR_POS)
-annotated_M1.fosternk.unplaced <- subset(annotated_M1.fosternk.unplaced, !CHR_POS %in% annotated_M1.fosternk.downstream.CG$CHR_POS)
-annotated_M1.fosternk.unplaced <- subset(annotated_M1.fosternk.unplaced, !CHR_POS %in% annotated_M1.fosternk.threeUTR.CG$CHR_POS)
-annotated_M1.fosternk.unplaced <- subset(annotated_M1.fosternk.unplaced, !CHR_POS %in% annotated_M1.fosternk.fiveUTR.CG$CHR_POS)
 
-distribution.M1.fosternk <- data.frame("Functional.Region" = c("Promoter", "Genes", "TSS", "Exon", 
-                                                               "Introns", "Upstream", "Downstream", 
-                                                               "3-UTR", "5-UTR", "Unplaced", "All"), 
-                                       "Nr.Sites" = c(nrow(annotated_M1.fosternk.promo.CG),
-                                                      nrow(annotated_M1.fosternk.genes.CG),
-                                                      nrow(annotated_M1.fosternk.TSS.CG),
-                                                      nrow(annotated_M1.fosternk.exons_gene.CG),
-                                                      nrow(annotated_M1.fosternk.introns.CG),
-                                                      nrow(annotated_M1.fosternk.upstream.CG),
-                                                      nrow(annotated_M1.fosternk.downstream.CG),
-                                                      nrow(annotated_M1.fosternk.threeUTR.CG),
-                                                      nrow(annotated_M1.fosternk.fiveUTR.CG),
-                                                      length(unique(annotated_M1.fosternk.unplaced$CHR_POS)), 
-                                                      nrow(sites.sig.fosternk.M1.select)))
+#make a list and add extra col
 
-# make pie chart
-distribution.M1Foster.ggplot <- distribution.M1.fosternk[-11,]
-str(distribution.M1Foster.ggplot)
-distribution.M1Foster.ggplot$Nr.Sites <- as.numeric(distribution.M1Foster.ggplot$Nr.Sites)
-distribution.M1Foster.ggplot <- distribution.M1Foster.ggplot %>% 
-  arrange(Nr.Sites) %>%
-  mutate(prop = Nr.Sites / sum(distribution.M1Foster.ggplot$Nr.Sites) *100) %>%
+list.annotated.foster <- sites.sig.fosternk.M1.select[,c(1,2)] 
+list.annotated.foster <- add_column(list.annotated.foster, "CHR_POS" = paste(list.annotated.foster$chr, list.annotated.foster$start, sep = "_"))
+
+## add column
+list.annotated.foster <- list.annotated.foster%>% mutate(
+  region = as.factor(case_when(
+    list.annotated.foster$CHR_POS %in% annotated_M1.fosternk.TSS.CG$CHR_POS ~ "TSS",
+    list.annotated.foster$CHR_POS %in% annotated_M1.fosternk.promo.CG$CHR_POS  ~ "Promoter",
+    list.annotated.foster$CHR_POS %in% annotated_M1.fosternk.genes.CG$CHR_POS  ~ "Gene body",
+    list.annotated.foster$CHR_POS %in% annotated_M1.fosternk.exons_gene.CG$CHR_POS  ~ "Gene body",
+    list.annotated.foster$CHR_POS %in% annotated_M1.fosternk.introns.CG$CHR_POS  ~ "Gene body",
+    list.annotated.foster$CHR_POS %in% annotated_M1.fosternk.threeUTR.CG$CHR_POS  ~ "Gene body",
+    list.annotated.foster$CHR_POS %in% annotated_M1.fosternk.fiveUTR.CG$CHR_POS  ~ "Gene body",
+    list.annotated.foster$CHR_POS %in% annotated_M1.fosternk.upstream.CG$CHR_POS  ~ "Up- or downstream",
+    list.annotated.foster$CHR_POS %in% annotated_M1.fosternk.downstream.CG$CHR_POS  ~ "Up- or downstream",
+    is.na(list.annotated.foster$region) ~ "Intergenic")
+  ))
+
+list.annotated.foster$region <- as.factor(list.annotated.foster$region)
+
+summary(list.annotated.foster$region)
+write.csv(list.annotated.foster, "/home/nioo/rebeccash/2018_BS_manipulation/R_Scripts/complete_MS_pt1/great-tit-methylation-genes-environment/data/cpglist_fosternk.csv")
+
+# pie chart
+list.annotated.foster.ggplot <- as.data.frame(summary(list.annotated.foster$region))
+list.annotated.foster.ggplot <- rownames_to_column(list.annotated.foster.ggplot, "Functional.Region")
+names(list.annotated.foster.ggplot)[2] <- "Nr.Sites"
+piepercent <- found(list.annotated.foster.ggplot$prop,2)
+list.annotated.foster.ggplot <- list.annotated.foster.ggplot %>% 
+  mutate(prop = Nr.Sites / sum(list.annotated.foster.ggplot$Nr.Sites) *100) %>%
   mutate(ypos = cumsum(prop)- 0.5*prop )%>% 
   mutate(csum = rev(cumsum(rev(Nr.Sites))), 
          pos = Nr.Sites/2 + lead(csum, 1),
          pos = if_else(is.na(pos), Nr.Sites/2, pos))
 
-distribution.M1Foster.ggplot[10,6] <- 25
+#rearrange
+list.annotated.foster.ggplot<-list.annotated.foster.ggplot[c(4,3,1,5,2),]
+png(file = "/home/nioo/rebeccash/2018_BS_manipulation/R_Scripts/plots/piechart_fostercpg.png")
+pie(list.annotated.foster.ggplot$Nr.Sites, labels = paste0(round(list.annotated.foster.ggplot$prop,1),"%"), 
+    col = c('#c7eae5','#80cdc1','#35978f','#01665e','#003c30'),clockwise=T)
+legend(0.8,1.05, c(list.annotated.foster.ggplot$Functional.Region), cex = 0.8, fill = c('#c7eae5','#80cdc1','#35978f','#01665e','#003c30'))
+dev.off()
 
-ggplot(distribution.M1Foster.ggplot, aes(x = "" , y = Nr.Sites, fill = fct_inorder(Functional.Region))) +
-  geom_col(width = 1, color = 1) +
-  coord_polar(theta = "y") +
-  scale_fill_manual(values = c('#543005','#8c510a','#bf812d','#dfc27d','#f6e8c3','#c7eae5','#80cdc1','#35978f','#01665e','#003c30')) +
-  geom_label_repel(data = distribution.M1Foster.ggplot,
-                   aes(y = pos, label = paste0(Nr.Sites)),
-                   size = 8, nudge_x = 1, show.legend = FALSE, fill = "white",col = "black", parse = TRUE) +
-  guides(fill = guide_legend(title = "Functional region", reverse = T)) +
-  theme_void()+theme(text = element_text(size = 30))
+## venn diagram
+library(VennDiagram)
+draw.pairwise.venn(area1=nrow(sites.sig.geneticnk.M1.select), area2=nrow(sites.sig.fosternk.M1.select),
+                 cross.area=nrow(sites.sig.both.M1), fill = c("#01665e", "#c7eae5"), col = c("#01665e", "#c7eae5"), 
+                 cex=1, cat.cex = 0, category=c("Brood of Origin", "Brood of Rearing"),
+                 head = "(a)                                                                  ") #to edit
+
+### combine graphs in one
+
+
+png(file = "/home/nioo/rebeccash/2018_BS_manipulation/R_Scripts/plots/piechart_combined.png")
+par(mfrow=c(2,2))
+draw.pairwise.venn(area1=nrow(sites.sig.geneticnk.M1.select), area2=nrow(sites.sig.fosternk.M1.select),
+                   cross.area=nrow(sites.sig.both.M1), fill = c("#01665e", "#c7eae5"), col = c("#01665e", "#c7eae5"), 
+                   cex=1, cat.cex = 0) #to edit
+
+pie(list.annotated.all.ggplot$Nr.Sites, labels = paste0(round(list.annotated.all.ggplot$prop,1),"%"), 
+    col = c('#c7eae5','#80cdc1','#35978f','#01665e','#003c30'),clockwise=T)
+
+pie(list.annotated.genetic.ggplot$Nr.Sites, labels = paste0(round(list.annotated.genetic.ggplot$prop,1),"%"), 
+    col = c('#c7eae5','#80cdc1','#35978f','#01665e','#003c30'),clockwise=T)
+
+pie(list.annotated.foster.ggplot$Nr.Sites, labels = paste0(round(list.annotated.foster.ggplot$prop,1),"%"), 
+    col = c('#c7eae5','#80cdc1','#35978f','#01665e','#003c30'),clockwise=T)
+#legend(0.8,1.05, c(list.annotated.foster.ggplot$Functional.Region), cex = 0.8, fill = c('#c7eae5','#80cdc1','#35978f','#01665e','#003c30'))
+dev.off()
 
 #### Genetic + Foster NK LMER ####
 base::load("data/SigCpGGeneticFoster.RData") #sites.sig.fosternk.M1.select.adjchr
