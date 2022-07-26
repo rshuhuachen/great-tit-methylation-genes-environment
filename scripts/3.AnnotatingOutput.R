@@ -704,56 +704,124 @@ sites.sig.geneticnk.M1.select.overdisp.adjchr$end <- sites.sig.geneticnk.M1.sele
 sites.sig.geneticnk.M1.select.overdisp.adjchr$strand <- "+"
 sites.sig.geneticnk.M1.select.overdisp.adjchr.GR <- as(sites.sig.geneticnk.M1.select.overdisp.adjchr, "GRanges")
 
+library(fuzzyjoin)
 #Promoters
-annotated_geneticnk_overdisp.promo <- subsetByOverlaps(promoter, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
-annotated_geneticnk_overdisp.promo <- as.data.frame(annotated_geneticnk_overdisp.promo)
-annotated_geneticnk_overdisp.promo.GO <- annotated_geneticnk_overdisp.promo[,"gene_id"] #for GOrilla
+annotated_M1.GeneticNK_overdisp.promo <- subsetByOverlaps(promoter, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
+annotated_M1.GeneticNK_overdisp.promo.df <- as.data.frame(annotated_M1.GeneticNK_overdisp.promo)
+annotated_M1.GeneticNK_overdisp.promo.df <- fuzzy_inner_join(
+  annotated_M1.GeneticNK_overdisp.promo.df,sites.sig.geneticnk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.GeneticNK_overdisp.promo.df <- annotated_M1.GeneticNK_overdisp.promo.df %>% 
+  arrange(annotated_M1.GeneticNK_overdisp.promo.df$pvalue)
+
+annotated_M1.GeneticNK_overdisp.promo.GO <- annotated_M1.GeneticNK_overdisp.promo.df[,"gene_id"] #for GOrilla
 
 #Genes
-annotated_geneticnk_overdisp.genes <- subsetByOverlaps(genes, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
-annotated_geneticnk_overdisp.genes <- as.data.frame(annotated_geneticnk_overdisp.genes)
-annotated_geneticnk_overdisp.genes.GO <- annotated_geneticnk_overdisp.genes[,"gene_id"]
+annotated_M1.GeneticNK_overdisp.genes <- subsetByOverlaps(genes, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
+annotated_M1.GeneticNK_overdisp.genes.df <- as.data.frame(annotated_M1.GeneticNK_overdisp.genes)
+annotated_M1.GeneticNK_overdisp.genes.df <- fuzzy_inner_join(
+  annotated_M1.GeneticNK_overdisp.genes.df,sites.sig.geneticnk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.GeneticNK_overdisp.genes.df <- annotated_M1.GeneticNK_overdisp.genes.df %>% 
+  arrange(annotated_M1.GeneticNK_overdisp.genes.df$pvalue)
+
+annotated_M1.GeneticNK_overdisp.genes.GO <- annotated_M1.GeneticNK_overdisp.genes.df[,"gene_id"]
 
 #TSS
-annotated_geneticnk_overdisp.TSS <- subsetByOverlaps(TSS, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
-annotated_geneticnk_overdisp.TSS <- as.data.frame(annotated_geneticnk_overdisp.TSS)
-annotated_geneticnk_overdisp.TSS.GO <- annotated_geneticnk_overdisp.TSS[,"gene_id"]
+annotated_M1.GeneticNK_overdisp.TSS <- subsetByOverlaps(TSS, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
+annotated_M1.GeneticNK_overdisp.TSS.df <- as.data.frame(annotated_M1.GeneticNK_overdisp.TSS)
+annotated_M1.GeneticNK_overdisp.TSS.df <- fuzzy_inner_join(
+  annotated_M1.GeneticNK_overdisp.TSS.df,sites.sig.geneticnk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.GeneticNK_overdisp.TSS.df <- annotated_M1.GeneticNK_overdisp.TSS.df %>% 
+  arrange(annotated_M1.GeneticNK_overdisp.TSS.df$pvalue)
+
+annotated_M1.GeneticNK_overdisp.TSS.GO <- annotated_M1.GeneticNK_overdisp.TSS.df[,"gene_id"]
 
 #exon gene
-annotated_geneticnk_overdisp.exon.gene <- subsetByOverlaps(exons_gene, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
-annotated_geneticnk_overdisp.exon.gene <- as.data.frame(annotated_geneticnk_overdisp.exon.gene)
-annotated_geneticnk_overdisp.exon.gene.GO <- annotated_geneticnk_overdisp.exon.gene [,"ID"]
+annotated_M1.GeneticNK_overdisp.exon.gene <- subsetByOverlaps(exons_gene, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
+annotated_M1.GeneticNK_overdisp.exon.gene.df <- as.data.frame(annotated_M1.GeneticNK_overdisp.exon.gene)
+annotated_M1.GeneticNK_overdisp.exon.gene.df <- fuzzy_inner_join(
+  annotated_M1.GeneticNK_overdisp.exon.gene.df,sites.sig.geneticnk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.GeneticNK_overdisp.exon.gene.df <- annotated_M1.GeneticNK_overdisp.exon.gene.df %>% 
+  arrange(annotated_M1.GeneticNK_overdisp.exon.gene.df$pvalue)
+
+#annotated_M1.GeneticNK_overdisp.exon.gene.GO <- annotated_M1.GeneticNK_overdisp.exon.gene.df[,"gene_id"]
 
 #exon transcript
-annotated_geneticnk_overdisp.exon.trans <- subsetByOverlaps(exons_transcript, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
-annotated_geneticnk_overdisp.exon.trans <- as.data.frame(annotated_geneticnk_overdisp.exon.trans)
-annotated_geneticnk_overdisp.exon.trans.GO <- annotated_geneticnk_overdisp.exon.trans[,"ID"]
+annotated_M1.GeneticNK_overdisp.exon.trans <- subsetByOverlaps(exons_transcript, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
+annotated_M1.GeneticNK_overdisp.exon.trans.df <- as.data.frame(annotated_M1.GeneticNK_overdisp.exon.trans)
+annotated_M1.GeneticNK_overdisp.exon.trans.df <- fuzzy_inner_join(
+  annotated_M1.GeneticNK_overdisp.exon.trans.df,sites.sig.geneticnk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.GeneticNK_overdisp.exon.trans.df <- annotated_M1.GeneticNK_overdisp.exon.trans.df %>% 
+  arrange(annotated_M1.GeneticNK_overdisp.exon.trans.df$pvalue)
+
+#annotated_M1.GeneticNK_overdisp.exon.trans.GO <- annotated_M1.GeneticNK_overdisp.exon.trans.df[,"gene_id"]
 
 #intron
-annotated_geneticnk_overdisp.intron <- subsetByOverlaps(introns, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
-annotated_geneticnk_overdisp.intron <- as.data.frame(annotated_geneticnk_overdisp.intron)
-annotated_geneticnk_overdisp.intron.GO <- annotated_geneticnk_overdisp.intron[,"ID"]
+annotated_M1.GeneticNK_overdisp.intron <- subsetByOverlaps(introns, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
+annotated_M1.GeneticNK_overdisp.intron.df <- as.data.frame(annotated_M1.GeneticNK_overdisp.intron)
+annotated_M1.GeneticNK_overdisp.intron.df <- fuzzy_inner_join(
+  annotated_M1.GeneticNK_overdisp.intron.df,sites.sig.geneticnk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.GeneticNK_overdisp.intron.df <- annotated_M1.GeneticNK_overdisp.intron.df %>% 
+  arrange(annotated_M1.GeneticNK_overdisp.intron.df$pvalue)
+
+#annotated_M1.GeneticNK_overdisp.intron.GO <- annotated_M1.GeneticNK_overdisp.intron.df[,"gene_id"]
 
 #upstream
-annotated_geneticnk_overdisp.upstream <- subsetByOverlaps(upstream, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
-annotated_geneticnk_overdisp.upstream <- as.data.frame(annotated_geneticnk_overdisp.upstream)
-annotated_geneticnk_overdisp.upstream.GO <- annotated_geneticnk_overdisp.upstream[,"gene_id"]
+annotated_M1.GeneticNK_overdisp.upstream <- subsetByOverlaps(upstream, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
+annotated_M1.GeneticNK_overdisp.upstream.df <- as.data.frame(annotated_M1.GeneticNK_overdisp.upstream)
+annotated_M1.GeneticNK_overdisp.upstream.df <- fuzzy_inner_join(
+  annotated_M1.GeneticNK_overdisp.upstream.df,sites.sig.geneticnk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.GeneticNK_overdisp.upstream.df <- annotated_M1.GeneticNK_overdisp.upstream.df %>% 
+  arrange(annotated_M1.GeneticNK_overdisp.upstream.df$pvalue)
+
+annotated_M1.GeneticNK_overdisp.upstream.GO <- annotated_M1.GeneticNK_overdisp.upstream.df[,"gene_id"]
 
 #downstream
-annotated_geneticnk_overdisp.downstream <- subsetByOverlaps(downstream, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
-annotated_geneticnk_overdisp.downstream <- as.data.frame(annotated_geneticnk_overdisp.downstream)
-annotated_geneticnk_overdisp.downstream.GO <- annotated_geneticnk_overdisp.downstream[,"gene_id"]
+annotated_M1.GeneticNK_overdisp.downstream <- subsetByOverlaps(downstream, sites.sig.geneticnk.M1.select.overdisp.adjchr.GR)
+annotated_M1.GeneticNK_overdisp.downstream.df <- as.data.frame(annotated_M1.GeneticNK_overdisp.downstream)
+annotated_M1.GeneticNK_overdisp.downstream.df <- fuzzy_inner_join(
+  annotated_M1.GeneticNK_overdisp.downstream.df,sites.sig.geneticnk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.GeneticNK_overdisp.downstream.df <- annotated_M1.GeneticNK_overdisp.downstream.df %>% 
+  arrange(annotated_M1.GeneticNK_overdisp.downstream.df$pvalue)
+
+annotated_M1.GeneticNK_overdisp.downstream.GO <- annotated_M1.GeneticNK_overdisp.downstream.df[,"gene_id"]
 
 # Add together for GOrilla
-genes.for.GOrilla_overdisp.downstream<-c(annotated_geneticnk_overdisp.promo.GO, annotated_geneticnk_overdisp.genes.GO,
-                         annotated_geneticnk_overdisp.TSS.GO, annotated_geneticnk_overdisp.exon.gene.GO,
-                         annotated_geneticnk_overdisp.exon.trans.GO, annotated_geneticnk_overdisp.intron.GO,
-                         annotated_geneticnk_overdisp.upstream.GO, annotated_geneticnk_overdisp.downstream.GO)
+genes.for.GOrilla.M1.GeneticNK_overdisp<-rbind(annotated_M1.GeneticNK_overdisp.promo.df[,c("gene_id", "pvalue")], 
+                                      annotated_M1.GeneticNK_overdisp.genes.df[,c("gene_id", "pvalue")],
+                                      annotated_M1.GeneticNK_overdisp.TSS.df[,c("gene_id", "pvalue")],
+                                      annotated_M1.GeneticNK_overdisp.upstream.df[,c("gene_id", "pvalue")],
+                                      annotated_M1.GeneticNK_overdisp.downstream.df[,c("gene_id", "pvalue")])
 
-genes.for.GOrilla_overdisp.downstream <- unique(genes.for.GOrilla_overdisp.downstream)
-write.table(genes.for.GOrilla_overdisp.downstream, row.names = FALSE, col.names=FALSE,
-            quote = FALSE, "data/genes.for.GOrilla.GeneticNK.woverdisp.txt")
+genes.for.GOrilla.M1.GeneticNK_overdisp <- genes.for.GOrilla.M1.GeneticNK_overdisp %>% 
+  arrange(genes.for.GOrilla.M1.GeneticNK_overdisp$pvalue) #arrange by increasing p-value for GOrilla
 
+genes.for.GOrilla.M1.GeneticNK_overdisp.GO <- genes.for.GOrilla.M1.GeneticNK_overdisp$gene_id 
+write.table(genes.for.GOrilla.M1.GeneticNK_overdisp.GO, row.names = FALSE, col.names=FALSE,
+            quote = FALSE, "data/genes.for.GOrilla.GeneticNK_overdisp.woverdisp.txt")
 
 #### foster NK LMER ####
 nrow(sites.sig.fosternk.M1.select.overdisp.adjchr) #101
@@ -763,51 +831,120 @@ sites.sig.fosternk.M1.select.overdisp.adjchr$strand <- "+"
 sites.sig.fosternk.M1.select.overdisp.adjchr.GR <- as(sites.sig.fosternk.M1.select.overdisp.adjchr, "GRanges")
 
 #Promoters
-annotated_fosternk_overdisp.promo <- subsetByOverlaps(promoter, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
-annotated_fosternk_overdisp.promo <- as.data.frame(annotated_fosternk_overdisp.promo)
-annotated_fosternk_overdisp.promo.GO <- annotated_fosternk_overdisp.promo[,"gene_id"] #for GOrilla
+annotated_M1.fosterNK_overdisp.promo <- subsetByOverlaps(promoter, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
+annotated_M1.fosterNK_overdisp.promo.df <- as.data.frame(annotated_M1.fosterNK_overdisp.promo)
+annotated_M1.fosterNK_overdisp.promo.df <- fuzzy_inner_join(
+  annotated_M1.fosterNK_overdisp.promo.df,sites.sig.fosternk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.fosterNK_overdisp.promo.df <- annotated_M1.fosterNK_overdisp.promo.df %>% 
+  arrange(annotated_M1.fosterNK_overdisp.promo.df$pvalue)
+
+annotated_M1.fosterNK_overdisp.promo.GO <- annotated_M1.fosterNK_overdisp.promo.df[,"gene_id"] #for GOrilla
 
 #Genes
-annotated_fosternk_overdisp.genes <- subsetByOverlaps(genes, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
-annotated_fosternk_overdisp.genes <- as.data.frame(annotated_fosternk_overdisp.genes)
-annotated_fosternk_overdisp.genes.GO <- annotated_fosternk_overdisp.genes[,"gene_id"]
+annotated_M1.fosterNK_overdisp.genes <- subsetByOverlaps(genes, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
+annotated_M1.fosterNK_overdisp.genes.df <- as.data.frame(annotated_M1.fosterNK_overdisp.genes)
+annotated_M1.fosterNK_overdisp.genes.df <- fuzzy_inner_join(
+  annotated_M1.fosterNK_overdisp.genes.df,sites.sig.fosternk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.fosterNK_overdisp.genes.df <- annotated_M1.fosterNK_overdisp.genes.df %>% 
+  arrange(annotated_M1.fosterNK_overdisp.genes.df$pvalue)
+
+annotated_M1.fosterNK_overdisp.genes.GO <- annotated_M1.fosterNK_overdisp.genes.df[,"gene_id"]
 
 #TSS
-annotated_fosternk_overdisp.TSS <- subsetByOverlaps(TSS, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
-annotated_fosternk_overdisp.TSS <- as.data.frame(annotated_fosternk_overdisp.TSS)
-annotated_fosternk_overdisp.TSS.GO <- annotated_fosternk_overdisp.TSS[,"gene_id"]
+annotated_M1.fosterNK_overdisp.TSS <- subsetByOverlaps(TSS, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
+annotated_M1.fosterNK_overdisp.TSS.df <- as.data.frame(annotated_M1.fosterNK_overdisp.TSS)
+annotated_M1.fosterNK_overdisp.TSS.df <- fuzzy_inner_join(
+  annotated_M1.fosterNK_overdisp.TSS.df,sites.sig.fosternk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.fosterNK_overdisp.TSS.df <- annotated_M1.fosterNK_overdisp.TSS.df %>% 
+  arrange(annotated_M1.fosterNK_overdisp.TSS.df$pvalue)
+
+annotated_M1.fosterNK_overdisp.TSS.GO <- annotated_M1.fosterNK_overdisp.TSS.df[,"gene_id"]
 
 #exon gene
-annotated_fosternk_overdisp.exon.gene <- subsetByOverlaps(exons_gene, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
-annotated_fosternk_overdisp.exon.gene <- as.data.frame(annotated_fosternk_overdisp.exon.gene)
-annotated_fosternk_overdisp.exon.gene.GO <- annotated_fosternk_overdisp.exon.gene [,"ID"]
+annotated_M1.fosterNK_overdisp.exon.gene <- subsetByOverlaps(exons_gene, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
+annotated_M1.fosterNK_overdisp.exon.gene.df <- as.data.frame(annotated_M1.fosterNK_overdisp.exon.gene)
+annotated_M1.fosterNK_overdisp.exon.gene.df <- fuzzy_inner_join(
+  annotated_M1.fosterNK_overdisp.exon.gene.df,sites.sig.fosternk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.fosterNK_overdisp.exon.gene.df <- annotated_M1.fosterNK_overdisp.exon.gene.df %>% 
+  arrange(annotated_M1.fosterNK_overdisp.exon.gene.df$pvalue)
+
+#annotated_M1.fosterNK_overdisp.exon.gene.GO <- annotated_M1.fosterNK_overdisp.exon.gene.df[,"gene_id"]
 
 #exon transcript
-annotated_fosternk_overdisp.exon.trans <- subsetByOverlaps(exons_transcript, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
-annotated_fosternk_overdisp.exon.trans <- as.data.frame(annotated_fosternk_overdisp.exon.trans)
-annotated_fosternk_overdisp.exon.trans.GO <- annotated_fosternk_overdisp.exon.trans[,"ID"]
+annotated_M1.fosterNK_overdisp.exon.trans <- subsetByOverlaps(exons_transcript, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
+annotated_M1.fosterNK_overdisp.exon.trans.df <- as.data.frame(annotated_M1.fosterNK_overdisp.exon.trans)
+annotated_M1.fosterNK_overdisp.exon.trans.df <- fuzzy_inner_join(
+  annotated_M1.fosterNK_overdisp.exon.trans.df,sites.sig.fosternk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.fosterNK_overdisp.exon.trans.df <- annotated_M1.fosterNK_overdisp.exon.trans.df %>% 
+  arrange(annotated_M1.fosterNK_overdisp.exon.trans.df$pvalue)
+
+#annotated_M1.fosterNK_overdisp.exon.trans.GO <- annotated_M1.fosterNK_overdisp.exon.trans.df[,"gene_id"]
 
 #intron
-annotated_fosternk_overdisp.intron <- subsetByOverlaps(introns, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
-annotated_fosternk_overdisp.intron <- as.data.frame(annotated_fosternk_overdisp.intron)
-annotated_fosternk_overdisp.intron.GO <- annotated_fosternk_overdisp.intron[,"ID"]
+annotated_M1.fosterNK_overdisp.intron <- subsetByOverlaps(introns, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
+annotated_M1.fosterNK_overdisp.intron.df <- as.data.frame(annotated_M1.fosterNK_overdisp.intron)
+annotated_M1.fosterNK_overdisp.intron.df <- fuzzy_inner_join(
+  annotated_M1.fosterNK_overdisp.intron.df,sites.sig.fosternk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.fosterNK_overdisp.intron.df <- annotated_M1.fosterNK_overdisp.intron.df %>% 
+  arrange(annotated_M1.fosterNK_overdisp.intron.df$pvalue)
+
+#annotated_M1.fosterNK_overdisp.intron.GO <- annotated_M1.fosterNK_overdisp.intron.df[,"gene_id"]
 
 #upstream
-annotated_fosternk_overdisp.upstream <- subsetByOverlaps(upstream, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
-annotated_fosternk_overdisp.upstream <- as.data.frame(annotated_fosternk_overdisp.upstream)
-annotated_fosternk_overdisp.upstream.GO <- annotated_fosternk_overdisp.upstream[,"gene_id"]
+annotated_M1.fosterNK_overdisp.upstream <- subsetByOverlaps(upstream, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
+annotated_M1.fosterNK_overdisp.upstream.df <- as.data.frame(annotated_M1.fosterNK_overdisp.upstream)
+annotated_M1.fosterNK_overdisp.upstream.df <- fuzzy_inner_join(
+  annotated_M1.fosterNK_overdisp.upstream.df,sites.sig.fosternk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.fosterNK_overdisp.upstream.df <- annotated_M1.fosterNK_overdisp.upstream.df %>% 
+  arrange(annotated_M1.fosterNK_overdisp.upstream.df$pvalue)
+
+annotated_M1.fosterNK_overdisp.upstream.GO <- annotated_M1.fosterNK_overdisp.upstream.df[,"gene_id"]
 
 #downstream
-annotated_fosternk_overdisp.downstream <- subsetByOverlaps(downstream, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
-annotated_fosternk_overdisp.downstream <- as.data.frame(annotated_fosternk_overdisp.downstream)
-annotated_fosternk_overdisp.downstream.GO <- annotated_fosternk_overdisp.downstream[,"gene_id"]
+annotated_M1.fosterNK_overdisp.downstream <- subsetByOverlaps(downstream, sites.sig.fosternk.M1.select.overdisp.adjchr.GR)
+annotated_M1.fosterNK_overdisp.downstream.df <- as.data.frame(annotated_M1.fosterNK_overdisp.downstream)
+annotated_M1.fosterNK_overdisp.downstream.df <- fuzzy_inner_join(
+  annotated_M1.fosterNK_overdisp.downstream.df,sites.sig.fosternk.M1.select.overdisp.adjchr,
+  by = c("seqnames" = "CHR","start" = "start","end" = "start"),
+  match_fun = list(`==`, `<=`, `>=`))
+
+annotated_M1.fosterNK_overdisp.downstream.df <- annotated_M1.fosterNK_overdisp.downstream.df %>% 
+  arrange(annotated_M1.fosterNK_overdisp.downstream.df$pvalue)
+
+annotated_M1.fosterNK_overdisp.downstream.GO <- annotated_M1.fosterNK_overdisp.downstream.df[,"gene_id"]
 
 # Add together for GOrilla
-genes.for.GOrilla_fosternk_overdisp.downstream<-c(annotated_fosternk_overdisp.promo.GO, annotated_fosternk_overdisp.genes.GO,
-                                         annotated_fosternk_overdisp.TSS.GO, annotated_fosternk_overdisp.exon.gene.GO,
-                                         annotated_fosternk_overdisp.exon.trans.GO, annotated_fosternk_overdisp.intron.GO,
-                                         annotated_fosternk_overdisp.upstream.GO, annotated_fosternk_overdisp.downstream.GO)
+genes.for.GOrilla.M1.fosterNK_overdisp<-rbind(annotated_M1.fosterNK_overdisp.promo.df[,c("gene_id", "pvalue")], 
+                                               annotated_M1.fosterNK_overdisp.genes.df[,c("gene_id", "pvalue")],
+                                               annotated_M1.fosterNK_overdisp.TSS.df[,c("gene_id", "pvalue")],
+                                               annotated_M1.fosterNK_overdisp.upstream.df[,c("gene_id", "pvalue")],
+                                               annotated_M1.fosterNK_overdisp.downstream.df[,c("gene_id", "pvalue")])
 
-genes.for.GOrilla_fosternk_overdisp.downstream <- unique(genes.for.GOrilla_fosternk_overdisp.downstream)
-write.table(genes.for.GOrilla_fosternk_overdisp.downstream, row.names = FALSE, col.names=FALSE,
-            quote = FALSE, "data/genes.for.GOrilla.FosterNK.woverdisp.txt")
+genes.for.GOrilla.M1.fosterNK_overdisp <- genes.for.GOrilla.M1.fosterNK_overdisp %>% 
+  arrange(genes.for.GOrilla.M1.fosterNK_overdisp$pvalue) #arrange by increasing p-value for GOrilla
+
+genes.for.GOrilla.M1.fosterNK_overdisp.GO <- genes.for.GOrilla.M1.fosterNK_overdisp$gene_id 
+write.table(genes.for.GOrilla.M1.fosterNK_overdisp.GO, row.names = FALSE, col.names=FALSE,
+            quote = FALSE, "data/genes.for.GOrilla.FosterNK_overdisp.woverdisp.txt")
+
