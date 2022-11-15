@@ -12,4 +12,4 @@
 
 # create_mqtl.py : Python to plot significant CpG-SNP associations from mQTL analysis
 
-# example_annotation_Parus_major.R : Rscript example script to annotate sites
+# example_annotation_Parus_major.R : Rscript example to annotate sites
