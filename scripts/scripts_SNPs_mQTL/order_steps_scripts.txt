@@ -1,0 +1,107 @@
+
+# to assess DNA methylation levels at CpG site specifically and to call SNPS, we used the epiGBS2 bioinformatics pipeline (Gawehns et al., 2022) with minor modifications described in the manuscript
+# before calling SNPs, RG-tags were added to the reads
+
+# info.txt : python scripts and their input and output files/directories
+
+# add_tags.py : python script to add RG-tags to the reads
+
+# once RG-tags were added, SNP-calling was done with the epiGBS2 pipeline (https://github.com/nioo-knaw/epiGBS2/blob/epiGBS2v3/README.md)
+snakemake -j 12 -p –use-conda -R faidx_ref
+
+# remove other polymorphisms
+gunzip {pathway}/snp.vcf.gz
+picard SplitVcfs I={pathway}/snp.vcf SNP_OUTPUT=snp_filtered.vcfINDEL_OUTPUT=indel.vcf STRICT=falserm {pathway}/indel.vcf
+rm {pathway}/indel.vcf.idxrm {pathway}/snp_filtered.vcf.idx
+
+# compress, index and merge SNP files
+# run the for all files obtained from ‘PICARD SplitVcfs’
+bgzip {pathway}/snp_filtered.vcf
+# run for all files obtained from the command above
+bcftools index {pathway}/snp_filtered.vcf.gz
+# merge
+bcftools merge {pathway}/snp1_filtered.vcf.gz {pathway}/snp2_filtered.vcf.gz > {pathway}/output_merged.vcf
+gzip {pathway}/output_merged.vcf
+
+# filter SNPs
+vcftools –gzvcf {pathway}/output_merged.vcf.gz –minQ 50 –maf 0.05 –ld-window-bp-min 30 –recode –out output_merged_filteredrm output_merged_filtered.recode.log
+gzip {pathway}/output_merged_filtered.recode.vcf
+
+# create_matrix_data.py : python script to create input files for mQTL analysis
+
+# Keep true SNPs only
+gunzip output_merged_filtered_final.recode.vcf.gz
+bgzip output_merged_filtered_final.recode.vcf
+bgzip SNPs.vcf
+bcftools index SNPs.vcf.gz
+bcftools index output_merged_filtered_final.recode.vcf.gz
+bcftools isec -p /home/nioo/bernices/Projects/epiGBS_broodsizeman_2018/michellem/test_bernice/final/ -n=2 -w1 output_merged_filtered_final.recode.vcf.gz SNPs.vcf.gz
+bcftools view -T sites.txt output_merged_filtered_final.recode.vcf.gz -Oz > SNPs_shared.vcf.gz
+# alternatively, output/0002.vcf.gz for records from output_merged_filtered_final.recode.vcf.gz shared by both output_merged_filtered_final.recode.vcf.gz and SNPs.vcf.gz
+bcftools isec -p output -Oz output_merged_filtered_final.recode.vcf.gz SNPs.vcf.gz
+
+# only SNPs for which at least 98% of the genotype was known were kept
+cd output/
+bcftools view -i 'F_MISSING < 0.02' 0002.vcf.gz -Ov -o out2.vcf
+gunzip 0002.vcf.gz
+bgzip out2.vcf
+bcftools index out2.vcf.gz
+egrep "^NC_|^NW_" ../../../../../../snp_correct.tsv | awk '{print $1,$2,$3,$4}' > snp_correct_michelle.txt
+sed 's/ /\t/g' snp_correct_michelle.txt > snp_correct_michelle2.txt
+bcftools view -T snp_correct_michelle2.txt out2.vcf.gz -Oz > SNPs_shared.vcf.gz
+
+# only SNPs that were not in linkage disequilibrium and at least 1000 base pairs apart were kept
+bcftools +prune -m 0.2 -w 1000 SNPs_shared.vcf -Ov -o SNPs_ld_filtered.vcf
+gzip SNPs_ld_filtered.vcf
+
+# remove CpGs that overlap with SNP
+#select chromosome and position of SNPs
+egrep "^NC_|^NW_" SNPs.vcf | awk '{print $1,$2}' > WGBsnps.txt
+#add column names and make column CHR_POS
+head -n 1 WGBsnps.txt | awk '{print NF}'
+sed  -i '1i CHR POS' WGBsnps.txt
+head -n 1 WGBsnps.txt | awk '{print NF}'
+awk '{print $1"_"$2}' WGBsnps.txt > WGBsnps_test.txt 
+#overlap kept
+awk 'NR==FNR{seen[$1]=1; next} seen[$1]'  WGBsnps_test.txt geneloc.txt | head
+#overlap removed, while processing the first file, store the first field of file 1 in an array called a, move to next line, while processing the second file, if first field doesn't exist in array a then print. So it prints lines that are only in geneloc.txt and not in WGBsnps_test.txt, based on first column.
+awk 'NR == FNR {a[$1]; next} !($1 in a)'  WGBsnps_test.txt geneloc.txt > geneloc_noSNPs.txt
+#overlap removed
+awk 'NR == FNR {a[$1]; next} !($1 in a)'  WGBsnps_test.txt GE.txt > GE_noSNPs.txt
+#also remove Cs with -1 bp distance from SNP
+egrep "^NC_|^NW_" SNPs.vcf | awk '{print $1,$2}' > WGBsnps.txt
+#remove one bp from every position
+awk '{print $1,$2-1}' WGBsnps.txt > WGBsnps2.txt
+#add column names and make column CHR_POS
+head -n 1 WGBsnps2.txt | awk '{print NF}'
+sed  -i '1i CHR POS' WGBsnps2.txt
+head -n 1 WGBsnps2.txt | awk '{print NF}'
+awk '{print $1, $2, $1"_"$2}' WGBsnps2.txt | head
+awk '{print $1"_"$2}' WGBsnps2.txt > WGBsnps3.txt
+awk 'NR == FNR {a[$1]; next} !($1 in a)'  WGBsnps3.txt geneloc_noSNPs.txt > geneloc_noSNPs3.txt
+awk 'NR == FNR {a[$1]; next} !($1 in a)'  WGBsnps3.txt GE_noSNPs.txt > GE_noSNPs3.txt
+
+# create proper SNP file for the mQTL analysis
+gunzip SNPs_ld_filtered.vcf.gz 
+egrep "^NC_|^NW_" SNPs_ld_filtered.vcf | awk '{print $1,$2}' > SNPs_ld_filtered.txt
+awk '{print $1"_"$2}' SNPs_ld_filtered.txt > SNPs_ld_filtered_col.txt
+# note that SNPs_ld_filtered_col.txt is used to build the array keys first. The problem statement is to fetch all records from snpsloc.txt if the first field matches any of the chr_pos listed in SNPs_ld_filtered_col.txt. Header is kept.
+awk 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' SNPs_ld_filtered_col.txt snpsloc.txt | head
+# alternatively
+awk 'NR==FNR{seen[$1]=1; next} FNR==1 || seen[$1]'  SNPs_ld_filtered_col.txt snpsloc.txt | head
+awk 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' SNPs_ld_filtered_col.txt snpsloc.txt > snpsloc_filt.txt 
+awk 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' SNPs_ld_filtered_col.txt SNP.txt > SNP_filt.txt
+
+# perform mQTL analysis in studio
+
+# filter_matrixeqtl.py : remove significant trans associations if CpG and SNP are on the same chromosome and less than 5 million base pairs apart
+python filter_matrixeqtl.py
+
+# script_circo.R : filter cis and trans file for p-value in rstudio
+
+# remove x in first column cis_sign.txt and trans_sign.txt using nano in the terminal
+# create_mqtl.py : plot significant CpG-SNP associations from mQTL analysis
+python create_mqtl.py
+
+# example_annotation_Parus_major : example script to annotate sites
+# script_circo.R : create circos
