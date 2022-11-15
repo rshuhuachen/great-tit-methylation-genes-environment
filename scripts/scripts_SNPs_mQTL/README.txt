@@ -1,4 +1,4 @@
-# order_steps_scripts : order of scripts and steps that were taken in between that were related to SNP calling and mQTL analysis
+# order_steps_scripts.txt : order of scripts and steps that were taken in between that were related to SNP calling and mQTL analysis
 
 # info.txt : python scripts and their input and output files/directories
 
