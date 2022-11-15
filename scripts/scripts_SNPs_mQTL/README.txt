@@ -6,6 +6,8 @@
 
 # create_matrix_data.py : Python script to create input files for mQTL analysis
 
+# matrixeqtl.R : Rscript to run mQTL analysis
+
 # filter_matrixeqtl.py : Python script to remove significant trans associations if CpG and SNP are on the same chromosome and less than 5 million base pairs apart
 
 # script_circo.R : Rscript to filter cis and trans file for p-value and to create circos
