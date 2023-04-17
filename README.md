@@ -1,7 +1,7 @@
 # great-tit-methylation-genes-environment
-This is the full workflow for Sepers et al. (in prep) "Variation in DNA methylation in the great tit (_Parus major_) is largely determined by genetic effects."
+This is the full workflow for Sepers et al. (2023) "Variation in DNA methylation in the great tit (_Parus major_) is largely determined by genetic effects." https://doi.org/10.1093/molbev/msad086
 
-The workflow is divided up in X scripts:
+The workflow is divided up in 4 scripts:
 
 1. Filtering and plotting data using methylKit, conducting a PCA and DMA using DSS
 2. Fitting a model per CpG site for variance partitioning of genetic brood (brood of origin) and foster brood (brood of rearing)
