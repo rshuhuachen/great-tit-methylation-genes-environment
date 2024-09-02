@@ -11,8 +11,11 @@ snakemake -j 12 -p –use-conda -R faidx_ref
 
 # remove other polymorphisms
 gunzip {pathway}/snp.vcf.gz
-picard SplitVcfs I={pathway}/snp.vcf SNP_OUTPUT=snp_filtered.vcfINDEL_OUTPUT=indel.vcf STRICT=falserm {pathway}/indel.vcf
-rm {pathway}/indel.vcf.idxrm {pathway}/snp_filtered.vcf.idx
+picard SplitVcfs I={pathway}/snp.vcf SNP_OUTPUT=snp_filtered.vcf
+INDEL_OUTPUT=indel.vcf STRICT=false
+rm {pathway}/indel.vcf
+rm {pathway}/indel.vcf.idx
+rm {pathway}/snp_filtered.vcf.idx
 
 # compress, index and merge SNP files
 # run the for all files obtained from ‘PICARD SplitVcfs’
@@ -24,7 +27,8 @@ bcftools merge {pathway}/snp1_filtered.vcf.gz {pathway}/snp2_filtered.vcf.gz > {
 gzip {pathway}/output_merged.vcf
 
 # filter SNPs
-vcftools –gzvcf {pathway}/output_merged.vcf.gz –minQ 50 –maf 0.05 –ld-window-bp-min 30 –recode –out output_merged_filteredrm output_merged_filtered.recode.log
+vcftools –gzvcf {pathway}/output_merged.vcf.gz –minQ 50 –maf 0.05 –ld-window-bp-min 30 –recode –out output_merged_filtered
+rm output_merged_filtered.recode.log
 gzip {pathway}/output_merged_filtered.recode.vcf
 
 # create_matrix_data.py : python script to create input files for mQTL analysis
